@@ -1,5 +1,5 @@
 import {nanoid} from "nanoid";
 
-const shortUrl = nanoid(8);
+const generateNanoId = nanoid(8);
 
-export default shortUrl;
+export default generateNanoId;

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import axios from 'axios'
+import axiosInstance from './utils/axiosInstance'
 
 const App = () => {
   const [longUrl, setLongUrl] = useState('')
@@ -18,7 +18,7 @@ const App = () => {
     }
     setLoading(true)
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_BASE}/api/create`, { longUrl })
+      const res = await axiosInstance.post(`/api/create`, { longUrl })
       
       const shortUrl = res.data.shortUrl
       setShortUrl(shortUrl)
@@ -41,35 +41,49 @@ const App = () => {
   }
 
   return (
-    <div style={{fontFamily:'Arial, sans-serif',maxWidth:700,margin:'48px auto',padding:20}}>
-      <h1 style={{marginBottom:16}}>URL Shortener</h1>
+    <div className="font-sans max-w-xl mx-auto mt-12 p-6">
+  <h1 className="text-2xl font-semibold mb-4">URL Shortener</h1>
 
-      <form onSubmit={handleSubmit} style={{display:'flex',gap:8}}>
-        <input
-          value={longUrl}
-          onChange={(e) => setLongUrl(e.target.value)}
-          placeholder="Paste a long URL here"
-          aria-label="Long URL"
-          style={{flex:1,padding:'8px 12px',fontSize:16}}
-        />
-        <button type="submit" disabled={loading} style={{padding:'8px 12px'}}>
-          {loading ? 'Generating...' : 'Shorten'}
-        </button>
-      </form>
+  <form onSubmit={handleSubmit} className="flex gap-2">
+    <input
+      value={longUrl}
+      onChange={(e) => setLongUrl(e.target.value)}
+      placeholder="Paste a long URL here"
+      aria-label="Long URL"
+      className="flex-1 px-4 py-2 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+    />
+    <button
+      type="submit"
+      disabled={loading}
+      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+    >
+      {loading ? 'Generating...' : 'Shorten'}
+    </button>
+  </form>
 
-      {error && (
-        <div style={{color:'crimson',marginTop:12}}>{error}</div>
-      )}
+  {error && (
+    <div className="text-red-600 mt-3">{error}</div>
+  )}
 
-      {shortUrl && (
-        <div style={{marginTop:16,display:'flex',alignItems:'center',gap:8}}>
-          <a href={shortUrl} target="_blank" rel="noreferrer" style={{color:'#0366d6'}}>{shortUrl}</a>
-          <button onClick={handleCopy} style={{padding:'6px 10px'}}>
-            {copied ? 'Copied' : 'Copy'}
-          </button>
-        </div>
-      )}
+  {shortUrl && (
+    <div className="mt-4 flex items-center gap-2">
+      <a
+        href={shortUrl}
+        target="_blank"
+        rel="noreferrer"
+        className="text-blue-600 hover:underline break-all"
+      >
+        {shortUrl}
+      </a>
+      <button
+        onClick={handleCopy}
+        className="px-3 py-1 bg-gray-200 rounded-md hover:bg-gray-300 transition"
+      >
+        {copied ? 'Copied' : 'Copy'}
+      </button>
     </div>
+  )}
+</div>
   )
 }
 

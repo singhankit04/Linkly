@@ -1,18 +1,17 @@
-import urlModel from "../models/url.model.js"
+import { saveUrl } from "../dao/urldao.js";
+import generateNanoId from "../utils/createNanoId.js"
 
-export const saveUrl = async (longUrl,shortUrl)=>{
-    const url = new urlModel({
-        longUrl,
-        shortUrl
-    })
-    await url.save();
+export const createUrlWithoutUser = async (longUrl)=>{
+    const shortUrl = generateNanoId();
+    await saveUrl(shortUrl, longUrl);
+    return shortUrl;
+
 }
 
 
-export const findUrl = async(id)=>{
-    const url =await urlModel.findOneAndUpdate(
-        {shortUrl:id},
-        {$inc:{clicks:1}},
-    )
-    return url.longUrl;
+export const createUrlWithUser = async (longUrl, userId)=>{
+    const shortUrl = generateNanoId();
+    await saveUrl(shortUrl, longUrl, userId);
+    return shortUrl;
+
 }

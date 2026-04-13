@@ -1,7 +1,8 @@
 import shortUrl from "../utils/createNanoId.js"
-import {findUrl, saveUrl} from "../services/urlServices.js"
+import {findUrl, saveUrl} from "../dao/urldao.js"
 
 export const createUrl = async (longUrl)=>{
+    
     await saveUrl(longUrl,shortUrl);
     return shortUrl; 
 }

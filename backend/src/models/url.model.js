@@ -17,11 +17,11 @@ const urlSchema = new mongoose.Schema({
             type:Number,
             default:0,
         },
-        // user:{
-        //     type: mongoose.Schema.Types.ObjectId,
-        //     ref:"user",
-        //     required:true,
-        // }
+        user:{
+            type: mongoose.Schema.Types.ObjectId,
+            ref:"user",
+            required:true,
+        }
 }, {timestamps:true});
 
 

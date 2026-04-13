@@ -1,15 +1,16 @@
 import urlModel from "../models/url.model.js"
 
-export const saveUrl = async (shortUrl, longUrl, userId) => {
+export const saveUrl = async (longUrl, shortUrl, userId=null) => {
     try {
         const url = new urlModel({
             longUrl,
-            shortUrl
+            shortUrl,
+            user : userId 
+
         })
-        if(userId){
-            url.user=userId;
-        }
+        console.log(url)
         await url.save();
+        console.log(url)
     }catch(err){
         return(err.message)
     }

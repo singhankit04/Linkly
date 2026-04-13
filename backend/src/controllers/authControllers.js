@@ -4,8 +4,9 @@ import { findUserbyemialbyPassword } from "../dao/userdao.js";
 import { create_user } from "../services/authService.js";
 
 export const signup = async (req, res) => {
-    const { name, email, password } = req.body;
-    const{user, token}= create_user(name, email, password)
+    try{
+        const { name, email, password } = req.body;
+    const{user, token}=await create_user(name, email, password)
     req.user= user
     res.cookie("accessToken", token, cookieOptions)
     res.status(200).json({
@@ -13,13 +14,20 @@ export const signup = async (req, res) => {
         message: "acc created succesfully"
     })
 
+    }catch(error){
+        res.status(400).json({
+            success: false,
+            message: error.message
+        });
+    }
+    
+
 }
 
 export const login = async (req, res) => {
     const { email, password } = req.body;
     
     const user = await findUserbyemialbyPassword(email)
-    console.log(user)
     if (!user || password !== user.password) {
         res.status(401).json({
             success: false,
@@ -30,5 +38,5 @@ export const login = async (req, res) => {
     res.status(200).json({
         user
     })
-    console.log("hello")
+    
 }

@@ -1,10 +1,20 @@
 import generateNanoId from "../utils/createNanoId.js"
-import {findUrl, saveUrl} from "../dao/urldao.js"
+import {findslug, findUrl, saveUrl} from "../dao/urldao.js"
 
-export const createUrl = async (longUrl)=>{
+export const createUrlwithoutUser = async (longUrl)=>{
     const shortUrl = generateNanoId()
-    console.log(shortUrl)
     await saveUrl(longUrl,shortUrl);
+    return shortUrl; 
+}
+export const createUrlwithUser = async (longUrl, slug, userId)=>{
+    const shortUrl = slug? slug :generateNanoId()
+    if(slug){
+        const isexistslug = await findslug(slug)
+        if(isexistslug){
+           throw new Error("slug already exists")
+        }
+    }
+    await saveUrl(longUrl,shortUrl, userId);
     return shortUrl; 
 }
 

@@ -11,6 +11,30 @@ export const  create_user = async(name, email, password)=>{
        
     }
     const user = await createUser(name, email, password);
-    const token = jwtSign({id:user._id})
+    const token = jwtSign(user._id)
     return {user,token}
+}
+
+export const login_user = async(email,password)=>{
+    
+    const user = await findUserbyEmail(email)
+
+    if (!user) {
+        return res.status(401).json({
+            success: false,
+            message: "User not found"
+        });
+    }
+
+    const isMatch = await user.comparePassword(password);
+
+    if (!isMatch) {
+        return res.status(401).json({
+            success: false,
+            message: "Invalid credentials"
+        });
+    }
+
+    const token = jwtSign(user._id)
+    return {user, token}
 }

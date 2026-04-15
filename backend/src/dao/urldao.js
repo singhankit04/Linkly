@@ -8,15 +8,18 @@ export const saveUrl = async (longUrl, shortUrl, userId=null) => {
             user : userId 
 
         })
-        console.log(url)
+       
         await url.save();
-        console.log(url)
     }catch(err){
         return(err.message)
     }
 
 }
-
+export const findslug= async (slug )=>{
+    return await urlModel.findOne({
+        shortUrl:slug
+    })
+}
 export const findUrl = async (id) => {
     const url = await urlModel.findOneAndUpdate(
         { shortUrl: id },

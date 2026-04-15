@@ -6,12 +6,9 @@ export const createUser = async (name, email, password)=>{
     return newUser;
 }
 
-export const findUserbyemialbyPassword = async (email)=>{
-    return await userModel.findOne({email} ).select('+password')
-    
-}
+
 export const findUserbyEmail = async(email)=>{
-    return await userModel.findOne({email})
+    return await userModel.findOne({email}).select("+password")
 }
 
 export const findUserbyId =async (id)=>{

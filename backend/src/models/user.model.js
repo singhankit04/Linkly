@@ -1,4 +1,5 @@
 import mongoose from"mongoose"
+import bcrypt from "bcrypt"
 
 const userSchema = new mongoose.Schema({
         name:{
@@ -13,10 +14,29 @@ const userSchema = new mongoose.Schema({
         },
         password:{
             type:String,
-            required:true
+            required:true,
+            select: false
         }
 }, {timestamps:true});
 
+
+userSchema.pre("save", async function(){
+    if(!this.isModified("password")) return;
+
+    this.password = await bcrypt.hash(this.password, 10);
+});
+
+userSchema.methods.comparePassword = async function(password){
+    return await bcrypt.compare(password, this.password)
+}
+
+// remove password from response when converting to json 
+userSchema.set("toJSON", {
+    transform: function(doc, ret){
+        delete ret.password;
+        return ret;
+    }
+});
 
 const userModel = mongoose.model("user", userSchema);
 

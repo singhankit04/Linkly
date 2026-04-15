@@ -1,5 +1,5 @@
-import { findUserbyEmail } from "../dao/userdao.js";
-import {jwtSign, verifyjwt } from "../utils/jwt.js";
+
+import { verifyjwt } from "../utils/jwt.js";
 
 export const authMiddleware = async(req, res, next)=>{
     try{
@@ -12,7 +12,7 @@ export const authMiddleware = async(req, res, next)=>{
         }
         const decoded = verifyjwt(token);
         req.user = decoded;
-        next()
+        return next()
     }catch(error){
             res.status(401).json({
             success: false,

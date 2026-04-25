@@ -288,7 +288,14 @@ const PrivateDashboard = () => {
                           </div>
                           <div>
                             <div className="flex items-center gap-2">
-                              <span className="font-bold text-white text-lg">link.ly/{link.shortUrl}</span>
+                              <a 
+                                href={`${import.meta.env.VITE_API_BASE}/url/redirect/${link.shortUrl}`} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="font-bold text-white text-lg hover:text-purple-400 transition-colors cursor-pointer"
+                              >
+                                {link.shortUrl}
+                              </a>
                               <button 
                                 onClick={() => handleCopy(`link.ly/${link.shortUrl}`, link._id)}
                                 className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-white/10 rounded-md text-gray-400 hover:text-white"

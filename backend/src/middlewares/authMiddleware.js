@@ -1,4 +1,3 @@
-
 import { verifyjwt } from "../utils/jwt.js";
 
 export const authMiddleware = async(req, res, next)=>{

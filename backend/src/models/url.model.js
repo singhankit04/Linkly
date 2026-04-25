@@ -20,6 +20,10 @@ const urlSchema = new mongoose.Schema({
         user:{
             type: mongoose.Schema.Types.ObjectId,
             ref:"user"
+        },
+        secretMessage:{
+            type:String,
+            default:null
         }
 }, {timestamps:true});
 

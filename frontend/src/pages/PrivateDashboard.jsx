@@ -48,7 +48,7 @@ const PrivateDashboard = () => {
   // If user is not logged in, show restricted state
   if (!user) {
     return (
-      <div className="min-h-screen bg-[#0a0710] font-sans text-gray-200 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-[#0a0710] font-sans text-gray-200 flex items-center justify-center p-4 relative overflow-hidden">
         {/* Background Orbs */}
         <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-purple-900/20 blur-[120px] rounded-full pointer-events-none" />
         <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-blue-900/20 blur-[120px] rounded-full pointer-events-none" />

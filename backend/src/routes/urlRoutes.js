@@ -84,7 +84,7 @@ router.get("/get/withuser",authMiddleware, async (req, res) => {
 })
 
 
-router.get("/get/:shorturl", async (req, res) => {
+router.get("/redirect/:shorturl", async (req, res) => {
     const { shorturl } = req.params;
     const longUrl = await getUrl(shorturl);
 

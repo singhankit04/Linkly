@@ -94,7 +94,7 @@ const PrivateDashboard = () => {
       });
 
       if (res.data.success) {
-        const fullShortUrl = `link.ly/${res.data.shortUrl}`;
+        const fullShortUrl = `${import.meta.env.VITE_API_BASE}/url/redirect/${res.data.shortUrl}`;
         
         const newLink = {
           _id: Date.now().toString(),
@@ -297,7 +297,7 @@ const PrivateDashboard = () => {
                                 {link.shortUrl}
                               </a>
                               <button 
-                                onClick={() => handleCopy(`link.ly/${link.shortUrl}`, link._id)}
+                                onClick={() => handleCopy(`${import.meta.env.VITE_API_BASE}/url/redirect/${link.shortUrl}`, link._id)}
                                 className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-white/10 rounded-md text-gray-400 hover:text-white"
                                 aria-label="Copy Link"
                               >

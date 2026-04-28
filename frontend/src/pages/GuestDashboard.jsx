@@ -1,84 +1,61 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Link as LinkIcon, Copy, Check, BarChart2, Clock, User, Plus, MessageSquare } from 'lucide-react';
 import Input from '../components/Input';
 import Button from '../components/Button';
-import axiosInstance from '../utils/axiosInstance';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getPublicLinks, createPublicLink } from '../api/linksapi';
 
 const GuestDashboard = () => {
-  const [links, setLinks] = useState([]);
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-  
+
+  const { data: links = [], isLoading } = useQuery({
+    queryKey: ['publicLinks'],
+    queryFn: async () => {
+      const data = await getPublicLinks();
+      return data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    }
+  });
+
   // URL Creation State
   const [longUrl, setLongUrl] = useState('');
   const [alias, setAlias] = useState('');
   const [secretMessage, setSecretMessage] = useState('');
-  const [isGenerating, setIsGenerating] = useState(false);
   const [newlyCreated, setNewlyCreated] = useState(null);
   const [error, setError] = useState('');
-  
+
   const [copiedNew, setCopiedNew] = useState(false);
   const [copiedRowId, setCopiedRowId] = useState(null);
 
-  // Fetch Public Links
-  useEffect(() => {
-    const fetchLinks = async () => {
-      try {
-        const res = await axiosInstance.get('/url/get/withoutuser');
-        if (res.data.success) {
-          // Sort links by latest first
-          const sortedLinks = res.data.allUrl.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-          setLinks(sortedLinks);
-        }
-      } catch (err) {
-        console.error("Failed to fetch public links:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchLinks();
-  }, []);
+  const createMutation = useMutation({
+    mutationFn: createPublicLink,
+    onSuccess: (shortUrl) => {
+      queryClient.invalidateQueries({ queryKey: ['publicLinks'] });
+
+      const fullShortUrl = `${import.meta.env.VITE_API_BASE}/url/redirect/${shortUrl}`;
+      setNewlyCreated(fullShortUrl);
+      setLongUrl('');
+      setAlias('');
+      setSecretMessage('');
+    },
+    onError: (err) => {
+      setError(err.response?.data?.message || err.message || 'Failed to create link');
+    }
+  });
 
   const handleShorten = async (e) => {
     e.preventDefault();
     if (!longUrl) return;
 
-    setIsGenerating(true);
     setNewlyCreated(null);
     setError('');
 
-    try {
-      const res = await axiosInstance.post('/url/create/withoutuser', {
-        longUrl,
-        slug: alias || undefined,
-        secretMessage: secretMessage || null
-      });
-
-      if (res.data.success) {
-        
-        const newLink = {
-          _id: Date.now().toString(), // temporary ID until refresh
-          shortUrl: res.data.shortUrl, // The backend returns just the ID/slug
-          longUrl: longUrl,
-          clicks: 0,
-          createdAt: new Date().toISOString(),
-          user: null,
-          secretMessage: secretMessage || null
-        };
-        
-        const fullShortUrl = `${import.meta.env.VITE_API_BASE}/url/redirect/${res.data.shortUrl}`;
-        setNewlyCreated(fullShortUrl);
-        setLinks([newLink, ...links]);
-        setLongUrl('');
-        setAlias('');
-        setSecretMessage('');
-      }
-    } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Failed to create link');
-    } finally {
-      setIsGenerating(false);
-    }
+    createMutation.mutate({
+      longUrl,
+      slug: alias || undefined,
+      secretMessage: secretMessage || null
+    });
   };
 
   const handleCopy = (text, isRowId = null) => {
@@ -99,8 +76,8 @@ const GuestDashboard = () => {
     });
   };
 
-  const filteredLinks = links.filter(link => 
-    (link.longUrl && link.longUrl.toLowerCase().includes(searchQuery.toLowerCase())) || 
+  const filteredLinks = links.filter(link =>
+    (link.longUrl && link.longUrl.toLowerCase().includes(searchQuery.toLowerCase())) ||
     (link.shortUrl && link.shortUrl.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
@@ -111,17 +88,17 @@ const GuestDashboard = () => {
       <div className="absolute bottom-[20%] right-[-10%] w-[30%] h-[40%] bg-blue-900/10 blur-[120px] rounded-full pointer-events-none" />
 
       <div className="w-full max-w-7xl z-10 flex flex-col">
-        
+
         {/* Header */}
         <div className="mb-10 text-center lg:text-left">
-          <motion.h1 
+          <motion.h1
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight"
           >
             Public Dashboard
           </motion.h1>
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.1 }}
@@ -133,10 +110,10 @@ const GuestDashboard = () => {
 
         {/* Two-Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
+
           {/* LEFT COLUMN: URL Creation Form */}
           <div className="lg:col-span-4 lg:sticky lg:top-28">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 }}
@@ -144,17 +121,17 @@ const GuestDashboard = () => {
             >
               <h2 className="text-xl font-bold text-white mb-6">Create New Link</h2>
               <form onSubmit={handleShorten} className="flex flex-col gap-4">
-                <Input 
+                <Input
                   label="Long URL"
-                  placeholder="https://your-very-long-url.com..." 
+                  placeholder="https://your-very-long-url.com..."
                   value={longUrl}
                   onChange={(e) => setLongUrl(e.target.value)}
                   required
                 />
-                
-                <Input 
+
+                <Input
                   label="Custom name (Optional)"
-                  placeholder="e.g., my-campaign" 
+                  placeholder="e.g., my-campaign"
                   value={alias}
                   onChange={(e) => setAlias(e.target.value)}
                 />
@@ -171,18 +148,18 @@ const GuestDashboard = () => {
                     className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors resize-none"
                   />
                 </div>
-                
+
                 {error && <p className="text-red-400 text-sm mt-1">{error}</p>}
 
-                <Button type="submit" disabled={isGenerating || !longUrl} className="mt-2">
-                  {isGenerating ? 'Shortening...' : 'Shorten Link'}
+                <Button type="submit" disabled={createMutation.isPending || !longUrl} className="mt-2">
+                  {createMutation.isPending ? 'Shortening...' : 'Shorten Link'}
                   <Plus size={18} />
                 </Button>
               </form>
 
               <AnimatePresence>
                 {newlyCreated && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, height: 0, marginTop: 0 }}
                     animate={{ opacity: 1, height: 'auto', marginTop: 24 }}
                     exit={{ opacity: 0, height: 0, marginTop: 0 }}
@@ -236,7 +213,7 @@ const GuestDashboard = () => {
               ) : (
                 <AnimatePresence>
                   {filteredLinks.map((link, index) => (
-                    <motion.div 
+                    <motion.div
                       key={link._id || index}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -251,15 +228,15 @@ const GuestDashboard = () => {
                           </div>
                           <div>
                             <div className="flex items-center gap-2">
-                              <a 
-                                href={`${import.meta.env.VITE_API_BASE}/url/redirect/${link.shortUrl}`} 
-                                target="_blank" 
+                              <a
+                                href={`${import.meta.env.VITE_API_BASE}/url/redirect/${link.shortUrl}`}
+                                target="_blank"
                                 rel="noopener noreferrer"
                                 className="font-bold text-white text-lg hover:text-purple-400 transition-colors cursor-pointer"
                               >
-                              {link.shortUrl}
+                                {link.shortUrl}
                               </a>
-                              <button 
+                              <button
                                 onClick={() => handleCopy(`${import.meta.env.VITE_API_BASE}/url/redirect/${link.shortUrl}`, link._id)}
                                 className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-white/10 rounded-md text-gray-400 hover:text-white"
                                 aria-label="Copy Link"

@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { User, LogIn, LogOut, LayoutDashboard, Globe } from 'lucide-react';
 import Button from '../components/Button';
 import { useAuth } from '../context/AuthContext';
@@ -7,6 +7,12 @@ import { useAuth } from '../context/AuthContext';
 const Navbar = () => {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/');
+  };
   
   // We don't want to show the navbar on the Auth page (/)
   if (location.pathname === '/') return null;
@@ -53,7 +59,7 @@ const Navbar = () => {
           </div>
           
           {user ? (
-            <Button variant="secondary" className="!py-2 !px-4 text-sm !w-auto" onClick={logout}>
+            <Button variant="secondary" className="!py-2 !px-4 text-sm !w-auto" onClick={handleLogout}>
               <LogOut size={16} />
               <span className="hidden lg:inline">Logout</span>
             </Button>

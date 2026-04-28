@@ -1,8 +1,9 @@
 import urlModel from "../models/url.model.js"
 
-export const saveUrl = async (longUrl, shortUrl, userId=null, secretMessage=null) => {
+export const saveUrl = async (longUrl, shortUrl, userId=null, secretMessage=null, type="public") => {
     try {
         const url = new urlModel({
+            type,
             longUrl,
             shortUrl,
             user : userId,
@@ -22,26 +23,39 @@ export const findslug= async (slug )=>{
     })
 }
 
+
+export const findAllUrl = async () => {
+    const allUrl = await urlModel.find({
+        type:"public"
+    }).sort({createdAt:-1})
+
+    return allUrl
+}
+
+export const findPublicUrlbyUser = async (id) => {
+    const allUrl = await urlModel.find({
+        type:"public",
+        user:id
+    }).sort({createdAt:-1})
+
+    return allUrl
+}
+export const findAllUrlprivate = async (id) => {
+    const allUrl = await urlModel.find({
+        type:"private",
+        user:id
+
+    }).sort({createdAt:-1})
+
+    return allUrl
+}
+
+
+
 export const findUrl = async (shorturl) => {
     const url = await urlModel.findOneAndUpdate(
         { shortUrl: shorturl },
         { $inc: { clicks: 1 } },
     )
     return url?.longUrl;
-}
-
-export const findAllUrl = async () => {
-    const allUrl = await urlModel.find({
-        user:null
-    })
-
-    return allUrl
-}
-
-export const findAllUrlwithUser = async (id) => {
-    const allUrl = await urlModel.find({
-        user:id
-    })
-
-    return allUrl
 }

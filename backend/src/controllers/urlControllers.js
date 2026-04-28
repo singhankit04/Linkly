@@ -1,7 +1,7 @@
 import generateNanoId from "../utils/createNanoId.js"
-import {findAllUrl, findAllUrlwithUser, findslug, findUrl, saveUrl} from "../dao/urldao.js"
+import {findAllUrl, findAllUrlprivate, findPublicUrlbyUser, findslug, findUrl, saveUrl} from "../dao/urldao.js"
 
-export const createUrlwithoutUser = async (longUrl, slug, secretMessage)=>{
+export const createUrlpublic = async (longUrl, slug, secretMessage, userId)=>{
     const shortUrl =slug? slug: generateNanoId();
     if(slug){
         const isexistslug = await findslug(slug)
@@ -9,10 +9,10 @@ export const createUrlwithoutUser = async (longUrl, slug, secretMessage)=>{
            throw new Error("slug already exists")
         }
     }
-    await saveUrl(longUrl,shortUrl, null, secretMessage);
+    await saveUrl(longUrl,shortUrl,userId, secretMessage);
     return shortUrl; 
 }
-export const createUrlwithUser = async (longUrl, slug, userId, secretMessage)=>{
+export const createUrlprivate = async (longUrl, slug, userId, secretMessage)=>{
     const shortUrl = slug? slug :generateNanoId()
     if(slug){
         const isexistslug = await findslug(slug)
@@ -20,21 +20,25 @@ export const createUrlwithUser = async (longUrl, slug, userId, secretMessage)=>{
            throw new Error("slug already exists")
         }
     }
-    await saveUrl(longUrl,shortUrl, userId, secretMessage);
+    await saveUrl(longUrl,shortUrl, userId, secretMessage, "private");
     return shortUrl; 
 }
 
-export const getUrlwithoutUser = async()=>{
+export const getUrlpublic = async()=>{
     const allUrl = await findAllUrl();
     return allUrl;
 }
 
 
-export const getUrlwithUser = async (id)=>{
-    const allUrl = await findAllUrlwithUser(id);
+export const getUrlprivate = async (id)=>{
+    const allUrl = await findAllUrlprivate(id);
     return allUrl;
 }
 
+export const getPublicUrlbyUserId = async(id)=>{
+    const urls = await findPublicUrlbyUser(id);
+    return urls;
+}
 export const getUrl = async (shorturl)=>{
     const longUrl = await findUrl(shorturl);
     return longUrl;

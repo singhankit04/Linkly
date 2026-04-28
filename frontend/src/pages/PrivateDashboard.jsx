@@ -5,45 +5,47 @@ import { Link } from 'react-router-dom';
 import Input from '../components/Input';
 import Button from '../components/Button';
 import { useAuth } from '../context/AuthContext';
-import axiosInstance from '../utils/axiosInstance';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getPrivateLinks, addPrivateLink } from '../api/linksapi';
 
 const PrivateDashboard = () => {
   const { user } = useAuth();
-  
-  const [links, setLinks] = useState([]);
+  const queryClient = useQueryClient();
+
   const [searchQuery, setSearchQuery] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-  
+
+  const { data: links = [], isLoading } = useQuery({
+    queryKey: ['privateLinks', user?.id],
+    queryFn: async () => {
+      const data = await getPrivateLinks();
+      return data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    },
+    enabled: !!user
+  });
+
   const [longUrl, setLongUrl] = useState('');
   const [alias, setAlias] = useState('');
   const [secretMessage, setSecretMessage] = useState('');
-  const [isGenerating, setIsGenerating] = useState(false);
   const [newlyCreated, setNewlyCreated] = useState(null);
   const [error, setError] = useState('');
-  
+
   const [copiedNew, setCopiedNew] = useState(false);
   const [copiedRowId, setCopiedRowId] = useState(null);
 
-  // Fetch Private Links
-  useEffect(() => {
-    if (!user) return; // Wait until user is verified
-    
-    const fetchLinks = async () => {
-      try {
-        const res = await axiosInstance.get('/url/get/withuser');
-        if (res.data.success) {
-          // Sort links by latest first
-          const sortedLinks = res.data.allUrl.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-          setLinks(sortedLinks);
-        }
-      } catch (err) {
-        console.error("Failed to fetch private links:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchLinks();
-  }, [user]);
+  const createMutation = useMutation({
+    mutationFn: addPrivateLink,
+    onSuccess: (shortUrl) => {
+      queryClient.invalidateQueries({ queryKey: ['privateLinks', user?.id] });
+      const fullShortUrl = `${import.meta.env.VITE_API_BASE}/url/redirect/${shortUrl}`;
+      setNewlyCreated(fullShortUrl);
+      setLongUrl('');
+      setAlias('');
+      setSecretMessage('');
+    },
+    onError: (err) => {
+      setError(err.response?.data?.message || err.message || 'Failed to secure link');
+    }
+  });
 
   // If user is not logged in, show restricted state
   if (!user) {
@@ -53,7 +55,7 @@ const PrivateDashboard = () => {
         <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-purple-900/20 blur-[120px] rounded-full pointer-events-none" />
         <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-blue-900/20 blur-[120px] rounded-full pointer-events-none" />
 
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           className="bg-[#130d20]/80 backdrop-blur-xl border border-white/5 rounded-3xl shadow-2xl p-10 max-w-md w-full text-center relative z-10"
@@ -82,41 +84,14 @@ const PrivateDashboard = () => {
     e.preventDefault();
     if (!longUrl) return;
 
-    setIsGenerating(true);
     setNewlyCreated(null);
     setError('');
 
-    try {
-      const res = await axiosInstance.post('/url/create/withuser', {
-        longUrl,
-        slug: alias || undefined,
-        secretMessage: secretMessage || null
-      });
-
-      if (res.data.success) {
-        const fullShortUrl = `${import.meta.env.VITE_API_BASE}/url/redirect/${res.data.shortUrl}`;
-        
-        const newLink = {
-          _id: Date.now().toString(),
-          shortUrl: res.data.shortUrl,
-          longUrl: longUrl,
-          clicks: 0,
-          createdAt: new Date().toISOString(),
-          user: user.id,
-          secretMessage: secretMessage || null
-        };
-        
-        setNewlyCreated(fullShortUrl);
-        setLinks([newLink, ...links]);
-        setLongUrl('');
-        setAlias('');
-        setSecretMessage('');
-      }
-    } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Failed to secure link');
-    } finally {
-      setIsGenerating(false);
-    }
+    createMutation.mutate({
+      longUrl,
+      slug: alias || undefined,
+      secretMessage: secretMessage || null
+    });
   };
 
   const handleCopy = (text, isRowId = null) => {
@@ -136,8 +111,8 @@ const PrivateDashboard = () => {
     });
   };
 
-  const filteredLinks = links.filter(link => 
-    (link.longUrl && link.longUrl.toLowerCase().includes(searchQuery.toLowerCase())) || 
+  const filteredLinks = links.filter(link =>
+    (link.longUrl && link.longUrl.toLowerCase().includes(searchQuery.toLowerCase())) ||
     (link.shortUrl && link.shortUrl.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
@@ -148,17 +123,17 @@ const PrivateDashboard = () => {
       <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[40%] bg-blue-900/10 blur-[120px] rounded-full pointer-events-none" />
 
       <div className="w-full max-w-7xl z-10 flex flex-col">
-        
+
         {/* Header */}
         <div className="mb-10 text-center lg:text-left">
-          <motion.h1 
+          <motion.h1
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             className="text-3xl md:text-5xl font-bold text-white mb-4 tracking-tight"
           >
             Welcome, {user.name}
           </motion.h1>
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.1 }}
@@ -170,10 +145,10 @@ const PrivateDashboard = () => {
 
         {/* Two-Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
+
           {/* LEFT COLUMN: URL Creation Form */}
           <div className="lg:col-span-4 lg:sticky lg:top-28">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 }}
@@ -181,17 +156,17 @@ const PrivateDashboard = () => {
             >
               <h2 className="text-xl font-bold text-white mb-6">Create Private Link</h2>
               <form onSubmit={handleShorten} className="flex flex-col gap-4">
-                <Input 
+                <Input
                   label="Long URL"
-                  placeholder="https://your-secret-url.com..." 
+                  placeholder="https://your-secret-url.com..."
                   value={longUrl}
                   onChange={(e) => setLongUrl(e.target.value)}
                   required
                 />
-                
-                <Input 
+
+                <Input
                   label="Custom name (Optional)"
-                  placeholder="e.g., my-secret" 
+                  placeholder="e.g., my-secret"
                   value={alias}
                   onChange={(e) => setAlias(e.target.value)}
                 />
@@ -208,18 +183,18 @@ const PrivateDashboard = () => {
                     className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors resize-none"
                   />
                 </div>
-                
+
                 {error && <p className="text-red-400 text-sm mt-1">{error}</p>}
 
-                <Button type="submit" disabled={isGenerating || !longUrl} className="mt-2">
-                  {isGenerating ? 'Securing Link...' : 'Create Private Link'}
+                <Button type="submit" disabled={createMutation.isPending || !longUrl} className="mt-2">
+                  {createMutation.isPending ? 'Securing Link...' : 'Create Private Link'}
                   <Lock size={18} />
                 </Button>
               </form>
 
               <AnimatePresence>
                 {newlyCreated && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, height: 0, marginTop: 0 }}
                     animate={{ opacity: 1, height: 'auto', marginTop: 24 }}
                     exit={{ opacity: 0, height: 0, marginTop: 0 }}
@@ -273,7 +248,7 @@ const PrivateDashboard = () => {
               ) : (
                 <AnimatePresence>
                   {filteredLinks.map((link, index) => (
-                    <motion.div 
+                    <motion.div
                       key={link._id || index}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -288,15 +263,15 @@ const PrivateDashboard = () => {
                           </div>
                           <div>
                             <div className="flex items-center gap-2">
-                              <a 
-                                href={`${import.meta.env.VITE_API_BASE}/url/redirect/${link.shortUrl}`} 
-                                target="_blank" 
+                              <a
+                                href={`${import.meta.env.VITE_API_BASE}/url/redirect/${link.shortUrl}`}
+                                target="_blank"
                                 rel="noopener noreferrer"
                                 className="font-bold text-white text-lg hover:text-purple-400 transition-colors cursor-pointer"
                               >
                                 {link.shortUrl}
                               </a>
-                              <button 
+                              <button
                                 onClick={() => handleCopy(`${import.meta.env.VITE_API_BASE}/url/redirect/${link.shortUrl}`, link._id)}
                                 className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-white/10 rounded-md text-gray-400 hover:text-white"
                                 aria-label="Copy Link"

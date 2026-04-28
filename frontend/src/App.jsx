@@ -6,6 +6,7 @@ import PrivateDashboard from './pages/PrivateDashboard';
 import Navbar from './sections/navbar';
 import { AuthProvider } from './context/AuthContext';
 
+
 const App = () => {
   return (
     <AuthProvider>

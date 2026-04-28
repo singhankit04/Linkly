@@ -4,9 +4,10 @@ import { Mail, Lock, User, ArrowRight, Loader2 } from 'lucide-react';
 import Input from '../components/Input';
 import Button from '../components/Button';
 import ShowcasePanel from '../components/ShowcasePanel';
-import axiosInstance from '../utils/axiosInstance';
+
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { Login, Signup } from '../api/authapi';
 
 
 const Auth = () => {
@@ -59,18 +60,12 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        const res = await axiosInstance.post('/auth/login', {
-          email: formData.email,
-          password: formData.password
-        });
+        const res = await Login(formData)
+        
         login(res.data.user);
         navigate('/dashboard');
       } else {
-        const res = await axiosInstance.post('/auth/signup', {
-          name: formData.name,
-          email: formData.email,
-          password: formData.password
-        });
+        const res = await Signup(formData);
         login(res.data.user);
         navigate('/dashboard');
       }

@@ -1,16 +1,18 @@
 import { Router } from "express"
-import { createUrlwithUser, createUrlwithoutUser, getUrl, getUrlwithUser, getUrlwithoutUser } from "../controllers/urlControllers.js";
+import { createUrlprivate, createUrlpublic, getPublicUrlbyUserId, getUrl, getUrlprivate, getUrlpublic } from "../controllers/urlControllers.js";
 import { authMiddleware } from "../middlewares/authMiddleware.js";
+import { getUserId } from "../middlewares/getUser.js";
 
 const router = Router();
 
-router.post("/create/withoutuser", async (req, res) => {
+router.post("/create/public",getUserId, async (req, res) => {
     
     try {
+        const userId = req.user?.id;
         const { longUrl, slug, secretMessage } = req.body;
        
 
-        const shortUrl = await createUrlwithoutUser(longUrl, slug, secretMessage);
+        const shortUrl = await createUrlpublic(longUrl, slug, secretMessage, userId);
 
         return res.status(201).json({
             success: true,
@@ -29,7 +31,7 @@ router.post("/create/withoutuser", async (req, res) => {
 
 
 
-router.post("/create/withuser", authMiddleware, async (req, res)=>{
+router.post("/create/private", authMiddleware, async (req, res)=>{
       try {
         const { longUrl, slug, secretMessage } = req.body;
         const id = req.user?.id;
@@ -39,7 +41,7 @@ router.post("/create/withuser", authMiddleware, async (req, res)=>{
                 message: "user not found"
             })
         }
-        const shortUrl = await createUrlwithUser(longUrl, slug, id, secretMessage)
+        const shortUrl = await createUrlprivate(longUrl, slug, id, secretMessage)
             
 
         return res.status(201).json({
@@ -56,8 +58,8 @@ router.post("/create/withuser", authMiddleware, async (req, res)=>{
 
 } )
 
-router.get("/get/withoutuser", async (req, res) => {
-    const allUrl = await getUrlwithoutUser();
+router.get("/get/public", async (req, res) => {
+    const allUrl = await getUrlpublic();
   
     res.status(200).json({
         success:true,
@@ -65,9 +67,25 @@ router.get("/get/withoutuser", async (req, res) => {
     })
 })
 
+router.get('/get/publicbyuser', getUserId, async(req, res)=>{
+    const userId = req.user?.id;
+    if(!userId){
+        return res.status(401).json({
+            success: false,
+            message:"user not found"
+
+        })
+    }
+    
+    const urls = await getPublicUrlbyUserId(userId);
+    res.status(200).json({
+        success:true,
+        urls
+    })
+})
 
 
-router.get("/get/withuser",authMiddleware, async (req, res) => {
+router.get("/get/private",authMiddleware, async (req, res) => {
     const id = req.user.id;
     if(!id){
         return res.status(401).json({
@@ -75,7 +93,7 @@ router.get("/get/withuser",authMiddleware, async (req, res) => {
             message: "user not found"
         })
     }
-    const allUrl = await getUrlwithUser(id);
+    const allUrl = await getUrlprivate(id);
 
     res.status(200).json({
         success:true,

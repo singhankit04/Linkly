@@ -1,6 +1,11 @@
 import mongoose from"mongoose"
 
 const urlSchema = new mongoose.Schema({
+        type:{
+            type:String,
+            enum:["public", "private"],
+            required: true
+        },
         longUrl:{
             type:String,
             unique: true,

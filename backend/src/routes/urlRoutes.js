@@ -86,7 +86,8 @@ router.get('/get/publicbyuser', getUserId, async(req, res)=>{
 
 
 router.get("/get/private",authMiddleware, async (req, res) => {
-    const id = req.user.id;
+  
+    const id = req.user?.id;
     if(!id){
         return res.status(401).json({
             success: false,

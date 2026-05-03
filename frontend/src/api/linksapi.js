@@ -7,6 +7,7 @@ export const getPublicLinks = async() =>{
 
 export const getPrivateLinks = async() =>{
     const {data} = await axiosInstance.get('/url/get/private')
+    
     return data.allUrl;
 }
 

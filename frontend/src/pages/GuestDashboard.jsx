@@ -14,7 +14,8 @@ const GuestDashboard = () => {
     queryKey: ['publicLinks'],
     queryFn: async () => {
       const data = await getPublicLinks();
-      return data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      return data;
+      
     }
   });
 

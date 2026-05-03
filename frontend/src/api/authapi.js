@@ -2,10 +2,12 @@
 import axiosInstance from "../utils/axiosInstance";
 
 export const Login = async (formData) => {
-    return await axiosInstance.post('/auth/login', {
+    const res =await axiosInstance.post('/auth/login', {
         email: formData.email,
         password: formData.password
     });
+    
+    return res;
 }
 
 export const Signup = async (formData) => {

@@ -1,10 +1,9 @@
-import { verifyjwt } from "../utils/jwt.js";
+import { verifyAccessToken, } from "../utils/jwt.js";
 
 export const getUserId = (req, res, next)=>{
-    const token = req.cookies?.accessToken;
-   const user = token ? verifyjwt(token) : null;
+   const accessToken =req.headers.authorization?.split(" ")[1];
+   const decoded =accessToken ? verifyAccessToken(accessToken) : null;
 
-   req.user = user;
-   console.log(user)
+   req.user = decoded
    next();  
 }

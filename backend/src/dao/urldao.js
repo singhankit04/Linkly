@@ -56,6 +56,7 @@ export const findUrl = async (shorturl) => {
     const url = await urlModel.findOneAndUpdate(
         { shortUrl: shorturl },
         { $inc: { clicks: 1 } },
+        
     )
     return url?.longUrl;
 }

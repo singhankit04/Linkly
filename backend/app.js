@@ -18,6 +18,6 @@ app.use(cookieParser())
 
 app.use("/api/auth", authRoutes)
 app.use("/api/url", urlRoutes)
-// app.use("/", urlRoutes)
+
 
 export default app;

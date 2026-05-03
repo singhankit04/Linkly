@@ -18,7 +18,7 @@ const PrivateDashboard = () => {
     queryKey: ['privateLinks', user?.id],
     queryFn: async () => {
       const data = await getPrivateLinks();
-      return data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      return data;
     },
     enabled: !!user
   });

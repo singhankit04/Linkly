@@ -16,7 +16,7 @@ const Auth = () => {
   const { login } = useAuth();
   
   // Form State
-  const [formData, setFormData] = useState({ name: '', email: '', password: '' });
+  const [formData, setFormData] = useState({ name: '', email: '', password: ''});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -61,12 +61,11 @@ const Auth = () => {
     try {
       if (isLogin) {
         const res = await Login(formData)
-        
-        login(res.data.user);
+        await login(res.data.user, res.data.accessToken);
         navigate('/dashboard');
       } else {
         const res = await Signup(formData);
-        login(res.data.user);
+        await login(res.data.user, res.data.accessToken);
         navigate('/dashboard');
       }
     } catch (err) {

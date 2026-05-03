@@ -40,6 +40,7 @@ axiosInstance.interceptors.response.use(
             });
 
             setAccessToken(res.data.accessToken);
+            window.dispatchEvent(new CustomEvent('tokenRefreshed', { detail: res.data.accessToken }));
 
             error.config.headers.Authorization = `Bearer ${res.data.accessToken}`;
             return axiosInstance(error.config);
